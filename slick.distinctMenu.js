@@ -12,20 +12,31 @@
     var _self = this;
     var _handler = new Slick.EventHandler();
     var _defaults = {
-      command: 'filter',    //headerMenuItem command key
-      headerMenu: false,    //headerMenuPlugin instance
-      columns: [],          //columns object which was used in headerMenuPlugin
-      url: '/items',        //default url for query distinct arrays (JSON format)
-      urlParameters: null,  //extra parameters for url string
-      exclude: [],          //exclude column id's
-      doUrl: doUrl,
-      doCondition: doCondition,
-      doFilter: doFilter,
-      onReady: onReady,
+      command: 'filter',            //headerMenuItem command key
+      headerMenu: false,            //headerMenuPlugin instance
+      columns: [],                  //columns object which was used in headerMenuPlugin
+      url: '/items',                //default url for query distinct arrays (JSON format)
+      urlParameters: null,          //extra parameters for url string
+      exclude: [],                  //exclude column id's
+      doUrl: doUrl,                 //function that generate url.        f(field, condition)
+      doCondition: doCondition,     //function that generate conditions. f(field, value){
+      doFilter: doFilter,           //function that fetch data           f(field, condition)
+      onReady: onReady,             //function when menus are ready      f(columns) -> grid.setColumns(columns); grid.render();
       selectIcon: "/js/vendor/SlickGrid/images/tick.png",
-      condition: {$and: []}
+      condition: {$and: []}         //internal condition
     };
-    function condition(field, condition){
+    
+    function init(grid) {
+      //Init plugin
+      options = $.extend(true, {}, _defaults, options);
+      _grid = grid;
+      condition(false);
+      options.headerMenu.onCommand.subscribe(onCommand);
+      console.log('distinctMenu initialized');
+    }
+    
+    // Condition handler
+    function condition(field, condition, or){
       var obj = {}
       if( field === false ){
         options.condition['$and'] = [];
@@ -34,19 +45,24 @@
         }
       } else if(field && condition ) {
         var col = getColumnIndexByField(field);
-        obj[field] = condition;
-        options.condition['$and'][col] = condition;
+        if( or ) {
+          if( !options.condition['$and'][col]['$or'] ){
+            var org = JSON.stringify(options.condition['$and'][col]);
+            options.condition['$and'][col] = {};
+            options.condition['$and'][col]['$or'] = [ JSON.parse(org) ];
+          }
+          options.condition['$and'][col]['$or'].push( condition );
+        } else {
+          options.condition['$and'][col] = condition;
+        }
       }
-      return options.condition;
-    }
-    function init(grid) {
-      options = $.extend(true, {}, _defaults, options);
-      _grid = grid;
-      for (var i=1;i<=options.columns.length;i++){
-        options.condition['$and'].push({});
+      function cleanCondition(myObjects)
+      {
+        return {'$and': myObjects['$and'].filter(function (val) {
+            return Object.keys(val).length!=0;
+        })};
       }
-      options.headerMenu.onCommand.subscribe(onCommand);
-      console.log('distinctMenu initialized');
+      return cleanCondition(options.condition);
     }
     function getColumnIndexByField(field)
     {
@@ -56,21 +72,23 @@
       } return;
     }
     function onCommand(e, args) {
+      
       if( args.command == options.command ){
         //options.exclude = args.column.field
-        setSelection(args.column, args.item);
-        condition(args.column.field, args.item.condition);
-        if( args.item.condition ) {
-          options.doFilter( args.column.field, condition() );
-        }
+        setSelection(args.column, args.item, e.ctrlKey);
+        condition(args.column.field, args.item.condition, e.ctrlKey);
+        options.doFilter( args.column.field, condition() );
+      } else if( value.command == 'filter' ) {
+        setSelection(args.column, args.item, e.ctrlKey);
+        condition(args.column.field, args.item.condition, e.ctrlKey);
+        options.doFilter( args.column.field, condition() );
       }
     }
     function destroy() {
       _handler.unsubscribeAll();
       console.log('distinctMenu destroyed');
-      //$(document.body).unbind("mousedown", handleBodyMouseDown);
     }
-    function setSelection(column, item){
+    function setSelection(column, item, or){
       $.extend(true, column, {header: {menu: {items: []}}})
       var items = column.header.menu.items;
       items.forEach( function( value ) {
@@ -78,7 +96,7 @@
           //belong to distinct menus
           if( value.title === item.title ){
             value.iconImage = options.selectIcon;
-          } else {
+          } else if(!or){
             value.iconImage = false;
           }
         }
