@@ -9,32 +9,33 @@ the user a list of the different column values, this is for u :)
 Features:
  - generate own urls which fetch json data from backend
  - exclude column distincts
+ - Internal(/or ext) condition handler (for query db)
+ - multiselection with [CTLR]
+
+
 
 
 ```
 
-var headerMenuPlugin = new Slick.Plugins.HeaderMenu({});
+var columns = [..]
+var grid = ..
+...
+var headerMenuPlugin = new Slick.Plugins.HeaderMenu();
 grid.registerPlugin(headerMenuPlugin);
 var distinctMenuPlugin = new Slick.Plugins.DistinctMenu(
-    { headerMenu: headerMenuPlugin,
-      columns: columns,
-      exclude: ['title', 'description'],
-      url: '/items',
-      doUrl: function(field, condition){      
-        if( typeof(condition)=='object'){
-          condition = JSON.stringify(condition);
-        }
-        
-        var url = '/items?t='+distinct+'&f='+field+'q='+condition;
-        return url;
-      },
-      doFilter: functino(field, condition){
-        //fetch new data from backend....
-      }
+  { headerMenu: headerMenuPlugin,
+    columns: columns,
+    exclude: ['title', 'description'], //columns id which is not used while distinct valuse
+    url: '/items',
+    doFilter: functino(field, condition){
+      //fetch new data from backend....
     }
-  );
-  grid.registerPlugin(distinctMenuPlugin);
-  distinctMenuPlugin.update();
-  
+  }
+);
+grid.registerPlugin(distinctMenuPlugin);
+distinctMenuPlugin.update();
+
 
 ```
+
+License: MIT (See more from LICENSE file)
