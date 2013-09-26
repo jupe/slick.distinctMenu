@@ -6,7 +6,7 @@ slick.distinctMenu
 E.g. when you have very huge database and When you want to bring to 
 the user a list of the different column values, this is for u :)
 
-!(screenshots/slick.distinctMenu.png)
+![screenshot](screenshots/slick.distinctMenu.png "example")
 
 Features:
  - generate own urls which fetch json data from backend
