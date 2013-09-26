@@ -3,9 +3,12 @@ slick.distinctMenu
 
 SlickGrid plugin for distinct column possible values from back-end.
 
+E.g. when you have very huge database and When you want to bring to 
+the user a list of the different column values, this is for u :)
+
 Features:
--generate own urls which fetch json data from backend
--exclude column distincts
+ - generate own urls which fetch json data from backend
+ - exclude column distincts
 
 
 ```
