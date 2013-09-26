@@ -78,7 +78,7 @@
         setSelection(args.column, args.item, e.ctrlKey);
         condition(args.column.field, args.item.condition, e.ctrlKey);
         options.doFilter( args.column.field, condition() );
-      } else if( value.command == 'filter' ) {
+      } else if( args.command == 'filter' ) {
         setSelection(args.column, args.item, e.ctrlKey);
         condition(args.column.field, args.item.condition, e.ctrlKey);
         options.doFilter( args.column.field, condition() );
