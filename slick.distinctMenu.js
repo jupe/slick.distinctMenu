@@ -58,9 +58,10 @@
       }
       function cleanCondition(myObjects)
       {
-        return {'$and': myObjects['$and'].filter(function (val) {
+        var and = {'$and': myObjects['$and'].filter(function (val) {
             return Object.keys(val).length!=0;
         })};
+        if( JSON.stringify(and['$and'])=='{}') return {};
       }
       return cleanCondition(options.condition);
     }
@@ -131,16 +132,16 @@
         }
         var url = false;
         if( typeof(options.doUrl)=='function'){
-          url = options.doUrl(items[i].field, options.condition);
+          url = options.doUrl(items[i].field, condition());
         }else {
           console.error('doUrl function missing!');
           //doError({error: 'doUrl function missing!');
           return;
         }
-        console.log(url); //debug print
-        $.getJSON( url, $.extend({json: true}, options.urlParameters)
+        $.getJSON( url, options.urlParameters
         ).done(function( json  ) {
-            if( json.length ){
+            if( typeof(json) == 'object' ){
+              console.log(json.length);
               setColumnMenuFilters(i, items[i], json);
             } else {
               console.error('invalid response format');
