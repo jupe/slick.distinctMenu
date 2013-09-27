@@ -198,6 +198,7 @@
       "init": init,
       "destroy": destroy,
       "update": updateMenus,
+      "condition": condition,
       //"onBeforeMenuShow": new Slick.Event(),
       //"onCommand": new Slick.Event()
     });
