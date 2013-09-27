@@ -38,13 +38,26 @@
     // Condition handler
     function condition(field, condition, or){
       var obj = {}
+      var col = -1;
+      
+      if(typeof(field)=='string' && typeof(condition)=='object' ){
+         col = getColumnIndexByField(field);
+      } else if( typeof(field)=='object' ){
+        col = options.columns.length;
+        //swap
+        or = condition;
+        condition = field;
+        field = true;
+      } else {
+        
+      }
+      
       if( field === false ){
         options.condition['$and'] = [];
-        for (var i=1;i<=options.columns.length;i++){
+        for (var i=0;i<=options.columns.length;i++){
           options.condition['$and'].push({});
         }
-      } else if(field && condition ) {
-        var col = getColumnIndexByField(field);
+      } else if(condition) {
         if( or ) {
           if( !options.condition['$and'][col]['$or'] ){
             var org = JSON.stringify(options.condition['$and'][col]);
@@ -53,6 +66,12 @@
           }
           options.condition['$and'][col]['$or'].push( condition );
         } else {
+          /*if( condition['$and'] ){
+             options.condition['$and'][col] = 
+             condition['$and'];
+          } else {
+            options.condition['$and'][col] = condition;
+          }*/
           options.condition['$and'][col] = condition;
         }
       }
@@ -61,9 +80,11 @@
         var and = {'$and': myObjects['$and'].filter(function (val) {
             return Object.keys(val).length!=0;
         })};
-        if( JSON.stringify(and['$and'])=='{}') return {};
+        if( JSON.stringify(and['$and'])=='[]') return {};
+        else return and;
       }
-      return cleanCondition(options.condition);
+      var search = cleanCondition(options.condition);
+      return search;
     }
     function getColumnIndexByField(field)
     {
@@ -138,6 +159,7 @@
           //doError({error: 'doUrl function missing!');
           return;
         }
+        console.log(url);
         $.getJSON( url, options.urlParameters
         ).done(function( json  ) {
             if( typeof(json) == 'object' ){
