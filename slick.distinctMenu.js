@@ -21,8 +21,9 @@
       doUrl: doUrl,                 //function that generate url.        f(field, condition)
       doCondition: doCondition,     //function that generate conditions. f(field, value){
       doFilter: doFilter,           //function that fetch data           f(field, condition)
+      getDistinct: getDistinct,
       onReady: onReady,             //function when menus are ready      f(columns) -> grid.setColumns(columns); grid.render();
-      selectIcon: "/js/vendor/SlickGrid/images/tick.png",
+      selectIcon: "SlickGrid/images/tick.png",
       condition: {$and: []}         //internal condition
     };
     
@@ -143,7 +144,19 @@
       cond[field] = value;
       return cond;
     }
-    
+    function getDistinct(field, url, urlParameters, callback)
+    {
+      $.getJSON( url, urlParameters
+        ).done(function( json  ) {
+            if( typeof(json) == 'object' ){
+              callback(null, json);
+            } else {
+              callback('invalid response format');
+            }
+        }).fail( function(jqxhr, textStatus, error) {
+          callback( textStatus + ", " + error );
+        });
+    }
     var updateDistinct = function(items, i, callback){
       
       if( i < items.length ) {
@@ -159,20 +172,13 @@
           //doError({error: 'doUrl function missing!');
           return;
         }
-        console.log(url);
-        $.getJSON( url, options.urlParameters
-        ).done(function( json  ) {
-            if( typeof(json) == 'object' ){
-              console.log(json.length);
-              setColumnMenuFilters(i, items[i], json);
+        options.getDistinct(items[i].field, url, options.urlParameters, function(error, list){
+            if( error ){
+              console.error(error);
             } else {
-              console.error('invalid response format');
+              setColumnMenuFilters(i, items[i], list);
             }
             updateDistinct(items, i+1, callback);
-        }).fail(function(jqxhr, textStatus, error) {
-          var err = textStatus + ", " + error;
-          console.error( "Request Failed: " + err );
-          updateDistinct(items, i+1, callback);
         });
       } else {
         callback(options.columns);
@@ -191,7 +197,7 @@
       });
     }
     function setColumnMenuFilters(coll, item, distinct){
-      console.log('setColumnMenuFilters: '+distinct);
+      //console.debug('setColumnMenuFilters: '+distinct);
       $.extend(true, options.columns[coll], {header: {menu: {items: []}}})
       
       //remove old items (only where command is "distinct")
@@ -207,7 +213,6 @@
       });
       //push individual items
       distinct.forEach( function( value ) {
-        console.log('addItem: '+value);
         items.push({
           command: options.command,
           title: value,
