@@ -23,7 +23,8 @@
       doFilter: doFilter,           //function that fetch data           f(field, condition)
       getDistinct: getDistinct,
       onReady: onReady,             //function when menus are ready      f(columns) -> grid.setColumns(columns); grid.render();
-      selectIcon: "SlickGrid/images/tick.png",
+      selectIcon: "SlickGrid/images/tick.png",  //selected filter-icon
+      filterIcon: 'SlickGrid/images/bullet_star.png', //icon when filter is in use (headermenu not support this yet by default) 
       condition: {$and: []}         //internal condition
     };
     
@@ -113,17 +114,24 @@
     }
     function setSelection(column, item, or){
       $.extend(true, column, {header: {menu: {items: []}}})
-      var items = column.header.menu.items;
-      items.forEach( function( value ) {
+      var filtering = false;
+      for (var i = 0; i < column.header.menu.items.length; i++) {
+        var value = column.header.menu.items[i];
         if( value.command == options.command ){
           //belong to distinct menus
           if( value.title === item.title ){
             value.iconImage = options.selectIcon;
+            if( value.title !== 'All' )
+              filtering = true;
           } else if(!or){
             value.iconImage = false;
           }
         }
-      });
+      }
+      if( filtering ){
+        console.log('filtering is in use');
+        column.iconImage = options.filterIcon;
+      }
     }
     function onReady(columns){
       _grid.setColumns(columns);

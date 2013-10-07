@@ -161,7 +161,7 @@
       doFilter: function(field, condition){
         console.log('doFilter');
         columnFilters = {};
-        for(var i=0;i<condition['$and'].length;i++){
+        for(var i=0;condition['$and'] && i<condition['$and'].length;i++){
           for(var key in condition['$and'][i] ){
             columnFilters[key] = condition['$and'][i][key];
           };
