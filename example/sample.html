@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <link rel="stylesheet" href="SlickGrid/slick.grid.css" type="text/css"/>
   <link rel="stylesheet" href="SlickGrid/plugins/slick.headermenu.css" type="text/css"/>
-  <link rel="stylesheet" href="examples.css" type="text/css"/>
+  <link rel="stylesheet" href="SlickGrid/slick-default-theme.css" type="text/css"/>
   <style>
     /**
      * Style the drop-down menu here since the plugin stylesheet mostly contains structural CSS.
@@ -63,6 +63,9 @@
 <script src="SlickGrid/slick.grid.js"></script>
 <script src="SlickGrid/plugins/slick.headermenu.js"></script>
 
+
+<script src="../slick.distinctMenu.js"></script>
+
 <script>
   var grid;
   var columns = [
@@ -73,37 +76,6 @@
     {id: "finish", name: "Finish", field: "finish"},
     {id: "effort-driven", name: "Effort Driven", field: "effortDriven"}
   ];
-
-  for (var i = 0; i < columns.length; i++) {
-    columns[i].header = {
-      menu: {
-        items: [
-          {
-            iconImage: "../images/sort-asc.gif",
-            title: "Sort Ascending",
-            command: "sort-asc"
-          },
-          {
-            iconImage: "../images/sort-desc.gif",
-            title: "Sort Descending",
-            command: "sort-desc"
-          },
-          {
-            title: "Hide Column",
-            command: "hide",
-            disabled: true,
-            tooltip: "Can't hide this column"
-          },
-          {
-            iconCssClass: "icon-help",
-            title: "Help",
-            command: "help"
-          }
-        ]
-      }
-    };
-  }
-
 
   var options = {
     enableColumnReorder: false
@@ -142,6 +114,21 @@
     });
 
     grid.registerPlugin(headerMenuPlugin);
+
+    var distinctMenuPlugin = new Slick.Plugins.DistinctMenu(
+    { headerMenu: headerMenuPlugin,
+      columns: columns,
+      exclude: ['title', 'description'], //columns id which is not used while distinct valuse
+      url: '/items',
+      doUrl: function(field, condition){
+        //fetch new data from backend....
+        return '/data/distinct/'+field+'.json';
+      },
+      //doFetch: function(field, condition){}
+    }
+  );
+  grid.registerPlugin(distinctMenuPlugin);
+  distinctMenuPlugin.update();
 
   })
 </script>
