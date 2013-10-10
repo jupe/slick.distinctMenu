@@ -60,10 +60,10 @@
 <!-- distinct plugin -->
 <script src="../slick.distinctMenu.js"></script>
 
+<script src="DataModel.js"></script>
 <script>
-  var grid;
   var columns = [
-    {id: "title", name: "Title", field: "title"},
+    {id: "title", name: "Title", field: "title", sortable: true},
     {id: "duration", name: "Duration", field: "duration"},
     {id: "%", name: "% Complete", field: "percentComplete"},
     {id: "start", name: "Start", field: "start"},
@@ -88,97 +88,13 @@
         effortDriven: (i % 5 == 0)
       };
     }
-    var columnFilters = {};
 
-    function filter(item) {
-      for(var field in columnFilters)
-      {
-        if( item!==undefined && item[field]!== columnFilters[field] )
-        {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    var dataView = new Slick.Data.DataView();
-    dataView.setItems(data);
-    dataView.setFilter(filter);
-
-    grid = new Slick.Grid("#myGrid", dataView, columns, options);
-    // Make the grid respond to DataView change events.
-    dataView.onRowCountChanged.subscribe(function (e, args) {
-      grid.updateRowCount();
-      grid.render();
+    //Easiest way to create grid
+    var model = new DataModel({
+      gridId: '#myGrid',
+      data: data,
+      columns: columns
     });
-
-    dataView.onRowsChanged.subscribe(function (e, args) {
-      grid.invalidateRows(args.rows);
-      grid.render();
-    });
-    var headerMenuPlugin = new Slick.Plugins.HeaderMenu({});
-    grid.registerPlugin(headerMenuPlugin);
-
-    /**                                                   */
-    /** TTHERE IS ALL MAGIC STUFF RELATED TO DISTINCTMENU */
-    /**                                                   */
-    var distinctMenuPlugin = new Slick.Plugins.DistinctMenu(
-    { headerMenu: headerMenuPlugin,
-      columns: columns,
-      exclude: ['title', 'start', 'finish'], //columns id which is not used while distinct valuse
-      url: '/items',
-
-      // For demo purpose we overwrite doUrl function with this one.
-      // This doUrl can be used to generate special url where
-      // distinct values can be fetched.
-      // By default url is generated like: /items?t=distinct&field=<field>&q=<conditions>
-      doUrl: function(field, condition){
-        //fetch new data from backend....
-        return '/data/distinct/'+field+'.json';
-      },
-
-      // for demo purpose we overwrite getDistinct function with this one
-      // This just get distinct data from rows.
-      // Normally this list is fetched from backend by $.getJSON(url) function
-      getDistinct: function(field, url, urlParameters, callback){
-        console.log('getDistinct');
-        function getDist(field){
-          var i=0,list = [];
-          data.forEach( function(row){
-            if( row[field] && list.indexOf( row[field] )== -1 ){
-              list.push( row[field] );
-            }
-          });
-          return list;
-        }
-        callback(null,  getDist(field)); 
-      },
-      // there we fetch actual data
-      // This is currently not implemented to distinct itself,
-      // so you need to do it yourself. Normally we should
-      // fetch data from back-end (ajax) but now for demo purpose
-      // we skip that part and filter just dataView.
-      doFilter: function(field, condition){
-        console.log('doFilter');
-        columnFilters = {};
-        for(var i=0;condition['$and'] && i<condition['$and'].length;i++){
-          for(var key in condition['$and'][i] ){
-            columnFilters[key] = condition['$and'][i][key];
-          };
-        }
-        //columnFilters[field] = 3;
-        dataView.refresh();
-        distinctMenuPlugin.update();
-      }
-    }
-  );
-  //Finally register plugin
-  grid.registerPlugin(distinctMenuPlugin);
-  //and update menu items
-  distinctMenuPlugin.update();
-  /**                                                   */
-  /**                MAGIC END                          */
-  /**                                                   */
 
   })
 </script>

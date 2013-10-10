@@ -4,29 +4,44 @@
 */
 
 var DataModel = function(options)
+{
   var _defaults = {
-    columnStaticFilter: filter,
-    columnFilters = {}
+    columnStaticFilter: columnStaticFilter,
+    columnFilters: {},
     dataView: newDataView(),
     data: [],
     grid: false,
-    useHeaderMenu: true,
+    dataUrl: false,
+    dataComparer: comparer,
+    getData: getData,
+    useDataFlatter: true,
+    dataIdField: 'id',
     gridOptions: {
       enableColumnReorder: false,
-    }
-    gridId: false,
+    },
+    gridId: '#myGrid',
     slickPlugins: {
       distinctMenu: {
-        obj: false,
-        options
+        obj: true,
+        options: {
+          getDistinct: getStaticDistinct,
+          doFilter: doStaticFilter,
+        }
+      },
+      headerMenu: {
+        obj: true,
+        options: {}
       }
     }
   }
 
   function Init(){
     options = $.extend(true, {}, _defaults, options);
+    //set data to dataView
     options.dataView.setItems(options.data);
+    //set column filter
     options.dataView.setFilter(options.columnStaticFilter);
+    //if grid is not yet created, create grid instance
     if(!options.grid)
       options.grid = new Slick.Grid(
         options.gridId, 
@@ -34,30 +49,51 @@ var DataModel = function(options)
         options.columns, 
         options.gridOptions);
     // Make the grid respond to DataView change events.
-    if( options.useHeaderMenu )
-    {
-      options.dataView.onRowCountChanged.subscribe(function (e, args) {
-        grid.updateRowCount();
-        grid.render();
-      });
+    options.dataView.onRowCountChanged.subscribe(function (e, args) {
+      options.grid.updateRowCount();
+      options.grid.render();
+    });
+    options.dataView.onRowsChanged.subscribe(function (e, args) {
+      options.grid.invalidateRows(args.rows);
+      options.grid.render();
+    });
+    //add sort event handler
+    options.grid.onSort.subscribe(function (e, args) {
+      sortdir = args.sortAsc ? 1 : -1;
+      sortcol = args.sortCol.field;
+      options.dataView.sort(options.dataComparer, args.sortAsc);
+    });
 
-      options.dataView.onRowsChanged.subscribe(function (e, args) {
-        grid.invalidateRows(args.rows);
-        grid.render();
-      });
-      options.slickPlugins.obj.headerMenuPlugin = new Slick.Plugins.HeaderMenu({});
-      options.grid.registerPlugin(options.slickPlugins.obj.headerMenuPlugin);
+    //if headerMenu is purpose to use, create it
+    if( options.slickPlugins.headerMenu.obj === true )
+    {
+      options.slickPlugins.headerMenu.obj = new Slick.Plugins.HeaderMenu({});
+      options.grid.registerPlugin(options.slickPlugins.headerMenu.obj);
+    }
+    //if distinct menu is purpose to use create it
+    if( options.slickPlugins.headerMenu.obj &&
+        options.slickPlugins.distinctMenu.obj === true )
       // init distinctMenu
-      if( options.useDistinctMenus ) {
-        options.slickPlugins.obj.distinctMenuPlugin = new Slick.Plugins.DistinctMenu(
-         $.extend(true, {}, options.slickPlugin.options, {
-            headerMenu: options.slickPlugins.obj.headerMenuPlugin,
-            columns: options.columns,
-            }));
-        options.grid.registerPlugin(options.slickPlugins.obj.distinctMenuPlugin);
-        //and update menu items
-        options.slickPlugins.distinctMenuPlugin.update();
-      }
+    {
+      //Create distinctMenu instance
+      options.slickPlugins.distinctMenu.obj = new Slick.Plugins.DistinctMenu(
+       $.extend(true, {}, options.slickPlugins.distinctMenu.options, {
+          headerMenu: options.slickPlugins.headerMenu.obj,
+          columns: options.columns,
+          }));
+      //register distinctMenu
+      options.grid.registerPlugin(options.slickPlugins.distinctMenu.obj);
+      
+      //and update menu items
+      options.slickPlugins.distinctMenu.obj.update();
+      
+    }
+    //if dataUrl is set, fetch data
+    if( options.dataUrl ){
+      options.getData( function(error, ok){
+        //if data is fetched, update distinctMenu
+        options.slickPlugins.distinctMenu.obj.update();
+      });
     }
   }
 
@@ -71,9 +107,26 @@ var DataModel = function(options)
     }
     return true;
   }
+  function getData(callback){
+    $.getJSON(options.url, null, function(data){
+      if( options.useDataFlatter ){
+        if( data.length > 0 ){
+          var i, len=data.length;
+          for(i=0;i<len;i++){
+            data[i] = flatten(data[i]);
+            if(options.dataIdField!='id') 
+              data[i].id = data[i][options.dataIdField];
+          }
+        }
+      }
+      options.dataView.beginUpdate();
+      options.dataView.setItems(data);
+      options.dataView.endUpdate();
+      callback(null, data.length);
+    })
+  }
   function newDataView(){return new Slick.Data.DataView();}
   function getStaticDistinct(field, url, urlParameters, callback){
-    console.log('getDistinct');
     function getDist(field){
       var i=0,list = [];
       options.data.forEach( function(row){
@@ -86,18 +139,23 @@ var DataModel = function(options)
     callback(null,  getDist(field)); 
   }
   function doStaticFilter(field, condition){
-    console.log('doFilter');
     options.columnFilters = {};
     for(var i=0;condition['$and'] && i<condition['$and'].length;i++){
       for(var key in condition['$and'][i] ){
-        columnFilters[key] = condition['$and'][i][key];
+        options.columnFilters[key] = condition['$and'][i][key];
       };
     }
     options.dataView.refresh();
-    options.slickPlugins.distinctMenuPlugin.update();
+    options.slickPlugins.distinctMenu.obj.update();
   }
+  function comparer(a, b) {
+    var x = a[sortcol], y = b[sortcol];
+    return (x == y ? 0 : (x > y ? 1 : -1));
+  }
+
+
   this.updateDistinct = function(){
-    options.slickPlugins.distinctMenuPlugin.update();
+    options.slickPlugins.distinctMenu.obj.update();
   }
   Init();
   return this;
