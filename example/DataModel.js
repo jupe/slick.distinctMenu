@@ -1,6 +1,9 @@
 /*
-  This is not yet used and might be better to be individual github project... 
-  General DataModel which generate whole slickGrid instance with custom parameters 
+  General GridModel which generate whole slickGrid instance 
+  and can be extend with custom parameters.
+  
+  Using this library you avoid unnecessary work when constructing 
+  normal use-case slickGrid instance...
 */
 
 var DataModel = function(options)
