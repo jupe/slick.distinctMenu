@@ -24,7 +24,7 @@
       getDistinct: getDistinct,
       onReady: onReady,             //function when menus are ready      f(columns) -> grid.setColumns(columns); grid.render();
       selectIcon: "SlickGrid/images/tick.png",  //selected filter-icon
-      filterIcon: 'SlickGrid/images/bullet_star.png', //icon when filter is in use (headermenu not support this yet by default) 
+      filterIcon: 'SlickGrid/images/bullet_blue.png', //icon when filter is in use (headermenu not support this yet by default) 
       condition: {$and: []}         //internal condition
     };
     
@@ -95,13 +95,16 @@
         if( options.columns[i].field == field ) return i;
       } return;
     }
+    function onAfterFilter(){
+      //updateMenus();
+    }
     function onCommand(e, args) {
       
       if( args.command == options.command ){
         //options.exclude = args.column.field
         setSelection(args.column, args.item, e.ctrlKey);
         condition(args.column.field, args.item.condition, e.ctrlKey);
-        options.doFilter( args.column.field, condition() );
+        options.doFilter( args.column.field, condition(), onAfterFilter );
       } else if( args.command == 'filter' ) {
         setSelection(args.column, args.item, e.ctrlKey);
         condition(args.column.field, args.item.condition, e.ctrlKey);
@@ -113,7 +116,11 @@
       console.log('distinctMenu destroyed');
     }
     function setSelection(column, item, or){
-      $.extend(true, column, {header: {menu: {items: []}}})
+      $.extend(true, column, {header: 
+                                {menu: {items: []},
+                                  buttons: [{cssClass: 'slick-header-distinctbutton'}],
+                                }})
+      
       var filtering = false;
       for (var i = 0; i < column.header.menu.items.length; i++) {
         var value = column.header.menu.items[i];
@@ -130,8 +137,11 @@
       }
       if( filtering ){
         console.log('filtering is in use');
-        column.iconImage = options.filterIcon;
+        column.header.buttons[0].image = options.filterIcon;
+      } else {
+        column.header.buttons[0].image = false;
       }
+      _grid.updateColumnHeader(column.id);
     }
     function onReady(columns){
       _grid.setColumns(columns);
@@ -198,10 +208,10 @@
     function doFilter(field, condition){
       console.log('Filteringing with condition: '+JSON.stringify(condition) );
     }
-    function removeFunction (myObjects,prop,valu)
+    function removeFunction (myObjects,prop,value)
     {
       return myObjects.filter(function (val) {
-          return val[prop] !== valu;
+          return val[prop] !== value;
       });
     }
     function setColumnMenuFilters(coll, item, distinct){

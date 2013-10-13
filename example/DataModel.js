@@ -12,9 +12,11 @@ var DataModel = function(options)
     data: [],
     grid: false,
     dataUrl: false,
+    
     dataComparer: comparer,
     getData: getData,
     useDataFlatter: true,
+    useDataSorting: true,
     dataIdField: 'id',
     gridOptions: {
       enableColumnReorder: false,
@@ -29,6 +31,10 @@ var DataModel = function(options)
         }
       },
       headerMenu: {
+        obj: true,
+        options: {}
+      },
+      headerButtons: {
         obj: true,
         options: {}
       }
@@ -57,6 +63,14 @@ var DataModel = function(options)
       options.grid.invalidateRows(args.rows);
       options.grid.render();
     });
+    if( options.useDataSorting ){
+      options.grid.onSort.subscribe(function(e, args) {
+        var comparer = function(a, b) {
+          return a[args.sortCol.field] > b[args.sortCol.field];
+        }
+        options.dataView.sort(comparer, args.sortAsc);
+      });
+    }
     //add sort event handler
     options.grid.onSort.subscribe(function (e, args) {
       sortdir = args.sortAsc ? 1 : -1;
@@ -67,8 +81,16 @@ var DataModel = function(options)
     //if headerMenu is purpose to use, create it
     if( options.slickPlugins.headerMenu.obj === true )
     {
-      options.slickPlugins.headerMenu.obj = new Slick.Plugins.HeaderMenu({});
+      options.slickPlugins.headerMenu.obj = new Slick.Plugins.HeaderMenu(
+        options.slickPlugins.headerMenu.options );
       options.grid.registerPlugin(options.slickPlugins.headerMenu.obj);
+    }
+    //if headerButtons is purpose to use, create it
+    if( options.slickPlugins.headerButtons.obj === true )
+    {
+      options.slickPlugins.headerButtons.obj = new Slick.Plugins.HeaderButtons(
+          options.slickPlugins.headerButtons.options);
+      options.grid.registerPlugin(options.slickPlugins.headerButtons.obj);
     }
     //if distinct menu is purpose to use create it
     if( options.slickPlugins.headerMenu.obj &&
@@ -138,7 +160,7 @@ var DataModel = function(options)
     }
     callback(null,  getDist(field)); 
   }
-  function doStaticFilter(field, condition){
+  function doStaticFilter(field, condition, callback){
     options.columnFilters = {};
     for(var i=0;condition['$and'] && i<condition['$and'].length;i++){
       for(var key in condition['$and'][i] ){
@@ -146,7 +168,7 @@ var DataModel = function(options)
       };
     }
     options.dataView.refresh();
-    options.slickPlugins.distinctMenu.obj.update();
+    callback();
   }
   function comparer(a, b) {
     var x = a[sortcol], y = b[sortcol];
