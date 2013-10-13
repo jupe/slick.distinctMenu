@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" href="SlickGrid/slick.grid.css" type="text/css"/>
+  <link rel="stylesheet" href="SlickGrid/plugins/slick.headermenu.css" type="text/css"/>
+  <link rel="stylesheet" href="SlickGrid/plugins/slick.headerbuttons.css" type="text/css"/>
+  <link rel="stylesheet" href="SlickGrid/slick-default-theme.css" type="text/css"/>
+  <style>
+    /**
+     * Style the drop-down menu here since the plugin stylesheet mostly contains structural CSS.
+     */
+
+    .slick-header-menu {
+      border: 1px solid #718BB7;
+      background: #f0f0f0;
+      padding: 2px;
+      -moz-box-shadow: 2px 2px 2px silver;
+      -webkit-box-shadow: 2px 2px 2px silver;
+      min-width: 100px;
+      z-index: 20;
+    }
+
+
+    .slick-header-menuitem {
+      padding: 2px 4px;
+      border: 1px solid transparent;
+      border-radius: 3px;
+    }
+
+    .slick-header-menuitem:hover {
+      border-color: silver;
+      background: white;
+    }
+
+    .slick-header-menuitem-disabled {
+      border-color: transparent !important;
+      background: inherit !important;
+    }
+
+    .icon-help {
+      background-image: url(../images/help.png);
+    }
+    
+    .slick-header-distinctbutton {
+      margin-right: 10px;
+    }
+    
+  </style>
+</head>
+<body>
+<div style="position:relative">
+  <div style="width:800px;">
+    <div id="myGrid" style="width:100%;height:500px;"></div>
+  </div>
+
+</div>
+
+<script src="SlickGrid/lib/jquery-1.7.min.js"></script>
+<script src="SlickGrid/lib/jquery.event.drag-2.2.js"></script>
+
+<script src="SlickGrid/slick.core.js"></script>
+<script src="SlickGrid/slick.grid.js"></script>
+<script src="SlickGrid/slick.dataView.js"></script>
+<script src="SlickGrid/plugins/slick.headermenu.js"></script>
+<script src="SlickGrid/plugins/slick.headerbuttons.js"></script>
+<!-- distinct plugin -->
+<script src="../slick.distinctMenu.js"></script>
+
+<script src="DataModel.js"></script>
+<script>
+  var columns = [
+    {id: "title", name: "Title", field: "title", sortable: true, width: 100},
+    {id: "duration", name: "Duration", field: "duration", width: 100},
+    {id: "%", name: "% Complete", sortable: true, field: "percentComplete", width: 130},
+    {id: "start", name: "Start", field: "start", width: 100},
+    {id: "finish", name: "Finish", field: "finish", width: 100},
+    {id: "effort-driven", name: "Effort Driven", field: "effortDriven", width: 150 }
+  ];
+
+  var options = {
+    enableColumnReorder: false
+  };
+
+  $(function () {
+    var data = [];
+    for (var i = 0; i < 500; i++) {
+      data[i] = {
+        id: i,
+        title: "Task " + i,
+        duration: (Math.round(Math.random() * 5))+" days",
+        percentComplete: Math.round(Math.random() * 100),
+        start: "01/01/2009",
+        finish: "01/05/2009",
+        effortDriven: (i % 5 == 0)
+      };
+    }
+
+    //Easiest way to create grid
+    var model = new DataModel({
+      gridId: '#myGrid',
+      data: data,
+      columns: columns
+    });
+
+  })
+</script>
+</body>
+</html>
