@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Slick.distinctmenu by jupe</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/jupe/slick.distinctMenu">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/jupe/slick.distinctMenu/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/jupe/slick.distinctMenu/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Slick.distinctmenu</h1>
+          <p>SlickGrid plugin for distinct column possible values from back-end.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/jupe">jupe</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="slickdistinctmenu" class="anchor" href="#slickdistinctmenu"><span class="octicon octicon-link"></span></a>slick.distinctMenu</h1>
+
+<p><a href="https://github.com/mleibman/SlickGrid/">SlickGrid</a> plugin for distinct column possible values from back-end.</p>
+
+<p>E.g. when you have very huge database and When you want to bring to 
+the user a list of the different column values, this is for u :)</p>
+
+<p><img src="screenshots/slick.distinctMenu.png" alt="screenshot" title="example"></p>
+
+<p>Features:</p>
+
+<ul>
+<li>generate own urls which fetch json data from backend</li>
+<li>exclude column distincts</li>
+<li>Internal(/or ext) condition handler (for query db)</li>
+<li>multiselection with [CTLR]</li>
+</ul><pre><code>
+var columns = [..]
+var grid = ..
+...
+var headerMenuPlugin = new Slick.Plugins.HeaderMenu();
+grid.registerPlugin(headerMenuPlugin);
+var distinctMenuPlugin = new Slick.Plugins.DistinctMenu(
+  { headerMenu: headerMenuPlugin,
+    columns: columns,
+    exclude: ['title', 'description'], //columns id which is not used while distinct valuse
+    url: '/items',
+    doFilter: functino(field, condition){
+      //fetch new data from backend....
+    }
+  }
+);
+grid.registerPlugin(distinctMenuPlugin);
+distinctMenuPlugin.update();
+
+
+</code></pre>
+
+<p>License: MIT (See more from LICENSE file)</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-42872086-2");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
