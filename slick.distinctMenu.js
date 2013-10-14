@@ -102,12 +102,12 @@
       
       if( args.command == options.command ){
         //options.exclude = args.column.field
-        setSelection(args.column, args.item, e.ctrlKey);
-        condition(args.column.field, args.item.condition, e.ctrlKey);
+        setSelection(args.column, args.item, e.ctrlKey||e.altKey);
+        condition(args.column.field, args.item.condition, e.ctrlKey||e.altKey);
         options.doFilter( args.column.field, condition(), onAfterFilter );
       } else if( args.command == 'filter' ) {
-        setSelection(args.column, args.item, e.ctrlKey);
-        condition(args.column.field, args.item.condition, e.ctrlKey);
+        setSelection(args.column, args.item, e.ctrlKey||e.altKey);
+        condition(args.column.field, args.item.condition, e.ctrlKey||e.altKey);
         options.doFilter( args.column.field, condition() );
       }
     }
@@ -118,8 +118,19 @@
     function setSelection(column, item, or){
       $.extend(true, column, {header: 
                                 {menu: {items: []},
-                                  buttons: [{cssClass: 'slick-header-distinctbutton'}],
-                                }})
+                                 buttons: [] }});
+      var buttonIdx = 0;
+      
+      var exists = false;
+      for(buttonIdx=0;buttonIdx<column.header.buttons.length;buttonIdx++){
+        if( column.header.buttons[buttonIdx].command == 'distinct' ){
+          exists = true;
+          break;
+        }
+      }
+      if( !exists ){
+        column.header.buttons.push({cssClass: 'slick-header-distinctbutton', command: 'distinct'});
+      }                            
       
       var filtering = false;
       for (var i = 0; i < column.header.menu.items.length; i++) {
@@ -137,9 +148,9 @@
       }
       if( filtering ){
         console.log('filtering is in use');
-        column.header.buttons[0].image = options.filterIcon;
+        column.header.buttons[buttonIdx].image = options.filterIcon;
       } else {
-        column.header.buttons[0].image = false;
+        column.header.buttons[buttonIdx].image = false;
       }
       _grid.updateColumnHeader(column.id);
     }

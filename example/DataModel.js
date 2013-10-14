@@ -11,21 +11,28 @@ var DataModel = function(options)
   var _defaults = {
     columnStaticFilter: columnStaticFilter,
     columnFilters: {},
-    dataView: newDataView(),
+    dataView: true,
     data: [],
     grid: false,
     dataUrl: false,
-    
+    images: {
+      group: 'SlickGrid/images/arrow_right_peppermint.png',
+    },
     dataComparer: comparer,
     getData: getData,
     useDataFlatter: true,
     useDataSorting: true,
+    useDataGrouping: true,
     dataIdField: 'id',
     gridOptions: {
       enableColumnReorder: false,
+      enableCellNavigation: true,
     },
     gridId: '#myGrid',
     slickPlugins: {
+      groupItemMetadataProvider: {
+        obj:  newGroupItemMetadataProvider
+      },
       distinctMenu: {
         obj: true,
         options: {
@@ -46,8 +53,24 @@ var DataModel = function(options)
 
   function Init(){
     options = $.extend(true, {}, _defaults, options);
+    
+    if( options.dataView === true ){
+        var dataViewArgs = {}
+        generateDataGroupMenus();
+        if( options.useDataGrouping ){
+          var groupItemMetadataProvider = options.slickPlugins.groupItemMetadataProvider.obj();
+          options.slickPlugins.groupItemMetadataProvider.obj = groupItemMetadataProvider
+          dataViewArgs = {
+            groupItemMetadataProvider: groupItemMetadataProvider,
+            inlineFilters: true
+          }
+        }
+        options.dataView = newDataView(dataViewArgs);
+        
+    }
     //set data to dataView
     options.dataView.setItems(options.data);
+
     //set column filter
     options.dataView.setFilter(options.columnStaticFilter);
     //if grid is not yet created, create grid instance
@@ -66,6 +89,9 @@ var DataModel = function(options)
       options.grid.invalidateRows(args.rows);
       options.grid.render();
     });
+    if( options.useDataGrouping){
+      options.grid.registerPlugin(groupItemMetadataProvider);
+    }
     if( options.useDataSorting ){
       options.grid.onSort.subscribe(function(e, args) {
         var comparer = function(a, b) {
@@ -74,6 +100,7 @@ var DataModel = function(options)
         options.dataView.sort(comparer, args.sortAsc);
       });
     }
+
     //add sort event handler
     options.grid.onSort.subscribe(function (e, args) {
       sortdir = args.sortAsc ? 1 : -1;
@@ -94,6 +121,7 @@ var DataModel = function(options)
       options.slickPlugins.headerButtons.obj = new Slick.Plugins.HeaderButtons(
           options.slickPlugins.headerButtons.options);
       options.grid.registerPlugin(options.slickPlugins.headerButtons.obj);
+      options.slickPlugins.headerButtons.obj.onCommand.subscribe(onCommand);
     }
     //if distinct menu is purpose to use create it
     if( options.slickPlugins.headerMenu.obj &&
@@ -121,7 +149,50 @@ var DataModel = function(options)
       });
     }
   }
-
+  function onCommand(e, args)
+  {
+    if( args.command == 'group' ){
+      onGroup(e, args);
+      // Stop propagation so that it doesn't register as a header click event.
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+  function onGroup(e, args){
+    console.log('onGrouping..');
+    var grouping = options.dataView.getGrouping();
+    if( grouping.length == 0 || e.ctrlKey || e.altKey ){
+      
+      grouping.push({
+        getter: args.column.id,
+        formatter: function (g) {
+          console.log(g);
+          return args.column.name+":  " + g.value + "  <span style='color:green'>(" + g.count + " items)</span>";
+        },
+        collapsed: true,
+        /*aggregators: [
+          //new Slick.Data.Aggregators.Avg("percentComplete"),
+          //new Slick.Data.Aggregators.Sum("cost")
+        ],
+        aggregateCollapsed: true
+        */
+      });
+    } else {
+      grouping = [];
+    }
+    options.dataView.setGrouping( grouping );
+  }
+  function generateDataGroupMenus(){
+    for(var i in options.columns){
+      var column = options.columns[i];
+      $.extend(true, column, {header: {buttons: [
+          {
+            cssClass: 'slick-header-distinctbutton',
+            image: options.images.group, 
+            command: 'group'}
+          ]}});
+    }
+  }
   function columnStaticFilter(item) {
     for(var field in options.columnFilters)
     {
@@ -150,7 +221,10 @@ var DataModel = function(options)
       callback(null, data.length);
     })
   }
-  function newDataView(){return new Slick.Data.DataView();}
+  function newGroupItemMetadataProvider(){
+    return new Slick.Data.GroupItemMetadataProvider()
+  }
+  function newDataView(args){return new Slick.Data.DataView(args);}
   function getStaticDistinct(field, url, urlParameters, callback){
     function getDist(field){
       var i=0,list = [];
@@ -164,6 +238,7 @@ var DataModel = function(options)
     callback(null,  getDist(field)); 
   }
   function doStaticFilter(field, condition, callback){
+    console.log('doStaticFilter');
     options.columnFilters = {};
     for(var i=0;condition['$and'] && i<condition['$and'].length;i++){
       for(var key in condition['$and'][i] ){

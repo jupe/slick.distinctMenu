@@ -64,6 +64,8 @@
 <script src="SlickGrid/slick.dataview.js"></script>
 <script src="SlickGrid/plugins/slick.headermenu.js"></script>
 <script src="SlickGrid/plugins/slick.headerbuttons.js"></script>
+<script src="SlickGrid/slick.groupitemmetadataprovider.js"></script>
+
 <!-- distinct plugin -->
 <script src="../slick.distinctMenu.js"></script>
 
@@ -72,7 +74,7 @@
   var columns = [
     {id: "title", name: "Title", field: "title", sortable: true, width: 100},
     {id: "duration", name: "Duration", field: "duration", width: 100},
-    {id: "%", name: "% Complete", sortable: true, field: "percentComplete", width: 130},
+    {id: "complete", name: "% Complete", sortable: true, field: "percentComplete", width: 150},
     {id: "start", name: "Start", field: "start", width: 100},
     {id: "finish", name: "Finish", field: "finish", width: 100},
     {id: "effort-driven", name: "Effort Driven", field: "effortDriven", width: 150 }
