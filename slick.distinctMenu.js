@@ -118,9 +118,11 @@
     function setSelection(column, item, or){
       $.extend(true, column, {header: 
                                 {menu: {items: []},
-                                 buttons: [] }});
-      var buttonIdx = 0;
+                                }});
       
+      if( !column.header.buttons )
+        column.header.buttons = [];
+      var buttonIdx = 0;
       var exists = false;
       for(buttonIdx=0;buttonIdx<column.header.buttons.length;buttonIdx++){
         if( column.header.buttons[buttonIdx].command == 'distinct' ){
@@ -129,6 +131,7 @@
         }
       }
       if( !exists ){
+        buttonIdx = column.header.buttons.length;
         column.header.buttons.push({cssClass: 'slick-header-distinctbutton', command: 'distinct'});
       }                            
       
@@ -147,10 +150,10 @@
         }
       }
       if( filtering ){
-        console.log('filtering is in use');
         column.header.buttons[buttonIdx].image = options.filterIcon;
       } else {
-        column.header.buttons[buttonIdx].image = false;
+        //remove whole button from list
+        column.header.buttons.splice(buttonIdx, 1);
       }
       _grid.updateColumnHeader(column.id);
     }
