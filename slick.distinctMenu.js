@@ -18,11 +18,13 @@
       url: '/items',                //default url for query distinct arrays (JSON format)
       urlParameters: null,          //extra parameters for url string
       exclude: [],                  //exclude column id's
-      doUrl: doUrl,                 //function that generate url.        f(field, condition)
+      doUrlForDistinct: doUrlForDistinct,                 //function that generate url.        f(field, condition)
+      doUrlForData: doUrlForData,                 //function that generate url.        f(field, condition)
       doCondition: doCondition,     //function that generate conditions. f(field, value){
       doFilter: doFilter,           //function that fetch data           f(field, condition)
       getDistinct: getDistinct,
       onReady: onReady,             //function when menus are ready      f(columns) -> grid.setColumns(columns); grid.render();
+      onAfterFilter: onAfterFilter,
       selectIcon: "/js/vendor/SlickGrid/images/tick.png",  //selected filter-icon
       filterIcon: '/js/vendor/SlickGrid/images/bullet_blue.png', //icon when filter is in use (headermenu not support this yet by default) 
       condition: {$and: []}         //internal condition
@@ -97,6 +99,7 @@
     }
     function onAfterFilter(){
       //updateMenus();
+      console.log("onAfterFilter");
     }
     function onCommand(e, args) {
       
@@ -104,12 +107,12 @@
         //options.exclude = args.column.field
         setSelection(args.column, args.item, e.ctrlKey||e.altKey);
         condition(args.column.field, args.item.condition, e.ctrlKey||e.altKey);
-        options.doFilter( args.column.field, condition(), onAfterFilter );
-      } else if( args.command == 'filter' ) {
+        options.doFilter( args.column.field, condition(), options.onAfterFilter );
+      } /*else if( args.command == 'filter' ) {
         setSelection(args.column, args.item, e.ctrlKey||e.altKey);
         condition(args.column.field, args.item.condition, e.ctrlKey||e.altKey);
-        options.doFilter( args.column.field, condition() );
-      }
+        options.doFilter( args.column.field, condition(), options.onAfterFilter );
+      }*/
     }
     function destroy() {
       _handler.unsubscribeAll();
@@ -162,11 +165,19 @@
       _grid.render();
       console.log('ready');
     }
-    function doUrl(field, condition){      
+    function doUrlForDistinct(field, condition){      
       if( typeof(condition)=='object'){
         condition = JSON.stringify(condition);
       }
       var url = options.url+'?t=distinct&f='+field;
+      if( condition ) url +='&q='+condition;
+      return url;
+    }
+    function doUrlForData(condition){      
+      if( typeof(condition)=='object'){
+        condition = JSON.stringify(condition);
+      }
+      var url = options.url+'?';
       if( condition ) url +='&q='+condition;
       return url;
     }
@@ -197,11 +208,11 @@
           return;
         }
         var url = false;
-        if( typeof(options.doUrl)=='function'){
-          url = options.doUrl(items[i].field, condition());
+        if( typeof(options.doUrlForDistinct)=='function'){
+          url = options.doUrlForDistinct(items[i].field, condition());
         }else {
-          console.error('doUrl function missing!');
-          //doError({error: 'doUrl function missing!');
+          console.error('doUrlForDistinct function missing!');
+          //doError({error: 'doUrlForDistinct function missing!');
           return;
         }
         options.getDistinct(items[i].field, url, options.urlParameters, function(error, list){
