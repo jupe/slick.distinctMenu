@@ -25,8 +25,8 @@
       getDistinct: getDistinct,
       onReady: onReady,             //function when menus are ready      f(columns) -> grid.setColumns(columns); grid.render();
       onAfterFilter: onAfterFilter,
-      selectIcon: "/js/vendor/SlickGrid/images/tick.png",  //selected filter-icon
-      filterIcon: '/js/vendor/SlickGrid/images/bullet_blue.png', //icon when filter is in use (headermenu not support this yet by default) 
+      selectIcon: "SlickGrid/images/tick.png",  //selected filter-icon
+      filterIcon: 'SlickGrid/images/bullet_blue.png', //icon when filter is in use (headermenu not support this yet by default) 
       condition: {$and: []}         //internal condition
     };
     

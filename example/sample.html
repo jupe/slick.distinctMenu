@@ -57,6 +57,7 @@
 </div>
 
 <script src="SlickGrid/lib/jquery-1.7.min.js"></script>
+<script src="SlickGrid/lib/jquery-ui-1.8.16.custom.min.js"></script>
 <script src="SlickGrid/lib/jquery.event.drag-2.2.js"></script>
 
 <script src="SlickGrid/slick.core.js"></script>
@@ -74,10 +75,10 @@
   var columns = [
     {id: "title", name: "Title", field: "title", sortable: true, width: 120},
     {id: "duration", name: "Duration", field: "duration", width: 120},
-    {id: "complete", name: "% Complete", sortable: true, field: "percentComplete", width: 150},
+    {id: "percentComplete", name: "% Complete", sortable: true, field: "percentComplete", width: 150},
     {id: "start", name: "Start", field: "start", width: 120},
     {id: "finish", name: "Finish", field: "finish", width: 120},
-    {id: "effort-driven", name: "Effort Driven", field: "effortDriven", width: 150 }
+    {id: "effortDriven", name: "Effort Driven", field: "effortDriven", width: 150 }
   ];
 
   var options = {
