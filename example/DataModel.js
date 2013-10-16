@@ -16,7 +16,7 @@ var DataModel = function(options)
     grid: false,
     dataUrl: false,
     images: {
-      group: 'SlickGrid/images/arrow_right_peppermint.png',
+      group: '/js/vendor/SlickGrid/images/arrow_right_peppermint.png',
     },
     dataComparer: comparer,
     getData: getData,
@@ -72,7 +72,8 @@ var DataModel = function(options)
     options.dataView.setItems(options.data);
 
     //set column filter
-    options.dataView.setFilter(options.columnStaticFilter);
+    //options.dataView.setFilter(columnStaticFilter);
+    
     //if grid is not yet created, create grid instance
     if(!options.grid)
       options.grid = new Slick.Grid(
@@ -141,14 +142,27 @@ var DataModel = function(options)
       options.slickPlugins.distinctMenu.obj.update();
       
     }
-    //if dataUrl is set, fetch data
-    if( options.dataUrl ){
-      options.getData( function(error, ok){
-        //if data is fetched, update distinctMenu
-        options.slickPlugins.distinctMenu.obj.update();
-      });
-    }
+    options.getData( options.dataUrl, function(error, list){
+      //if data is fetched, update distinctMenu
+      if( list ){
+        if( list.length > 0 ){
+          var i, len=list.length;
+          for(i=0;i<len;i++){
+            if( options.useDataFlatter)
+              list[i] = flatten(list[i]);
+            if(options.dataIdField!='id') 
+              list[i].id = list[i][options.dataIdField];
+          }
+        }
+      }
+      data = list;
+      options.dataView.beginUpdate();
+      options.dataView.setItems(data);
+      options.dataView.endUpdate();
+      options.slickPlugins.distinctMenu.obj.update();
+    });
   }
+  
   function onCommand(e, args)
   {
     if( args.command == 'group' ){
@@ -165,7 +179,7 @@ var DataModel = function(options)
       
       grouping.push({
         getter: args.column.id,
-        formatter: function (g) {
+        formatter: function (g, a, b, c) {
           console.log(g);
           return args.column.name+":  " + g.value + "  <span style='color:green'>(" + g.count + " items)</span>";
         },
@@ -203,22 +217,9 @@ var DataModel = function(options)
     }
     return true;
   }
-  function getData(callback){
-    $.getJSON(options.url, null, function(data){
-      if( options.useDataFlatter ){
-        if( data.length > 0 ){
-          var i, len=data.length;
-          for(i=0;i<len;i++){
-            data[i] = flatten(data[i]);
-            if(options.dataIdField!='id') 
-              data[i].id = data[i][options.dataIdField];
-          }
-        }
-      }
-      options.dataView.beginUpdate();
-      options.dataView.setItems(data);
-      options.dataView.endUpdate();
-      callback(null, data.length);
+  function getData(dataUrl, callback){
+    $.getJSON(dataUrl, null, function(data){
+      callback(null, data);
     })
   }
   function newGroupItemMetadataProvider(){
