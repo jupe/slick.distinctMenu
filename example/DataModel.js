@@ -25,8 +25,8 @@ var DataModel = function(options)
     useDataGrouping: true,
     dataIdField: 'id',
     gridOptions: {
-      enableColumnReorder: false,
-      enableCellNavigation: true,
+      //enableColumnReorder: false,
+      //enableCellNavigation: true,
     },
     gridId: '#myGrid',
     slickPlugins: {
@@ -36,8 +36,9 @@ var DataModel = function(options)
       distinctMenu: {
         obj: true,
         options: {
-          getDistinct: getStaticDistinct,
-          doFilter: doStaticFilter,
+          onAfterFilter: onAfterFilter,
+          //getDistinct: getStaticDistinct,
+          //doFilter: doStaticFilter,
         }
       },
       headerMenu: {
@@ -53,6 +54,15 @@ var DataModel = function(options)
 
   function Init(){
     options = $.extend(true, {}, _defaults, options);
+    
+    if( options.dataUrl ){
+      //this.getStaticDistinct = getStaticDistinct;
+      //this.doStaticFilter = doStaticFilter;
+      options.slickPlugins.distinctMenu.options.doFilter = doRemoteFilter;
+    } else {
+      options.slickPlugins.distinctMenu.options.doFilter = doStaticFilter;
+      
+    }
     
     if( options.dataView === true ){
         var dataViewArgs = {}
@@ -142,25 +152,7 @@ var DataModel = function(options)
       options.slickPlugins.distinctMenu.obj.update();
       
     }
-    options.getData( options.dataUrl, function(error, list){
-      //if data is fetched, update distinctMenu
-      if( list ){
-        if( list.length > 0 ){
-          var i, len=list.length;
-          for(i=0;i<len;i++){
-            if( options.useDataFlatter)
-              list[i] = flatten(list[i]);
-            if(options.dataIdField!='id') 
-              list[i].id = list[i][options.dataIdField];
-          }
-        }
-      }
-      data = list;
-      options.dataView.beginUpdate();
-      options.dataView.setItems(data);
-      options.dataView.endUpdate();
-      options.slickPlugins.distinctMenu.obj.update();
-    });
+    options.getData( options.dataUrl, options.slickPlugins.distinctMenu.obj.condition(), onAfterFilter);
   }
   
   function onCommand(e, args)
@@ -217,10 +209,17 @@ var DataModel = function(options)
     }
     return true;
   }
-  function getData(dataUrl, callback){
-    $.getJSON(dataUrl, null, function(data){
-      callback(null, data);
-    })
+  function getData(url, urlParameters, callback){
+     $.getJSON( url, urlParameters
+        ).done(function( json  ) {
+            if( typeof(json) == 'object' ){
+              callback(null, json);
+            } else {
+              callback('invalid response format');
+            }
+        }).fail( function(jqxhr, textStatus, error) {
+          callback( textStatus + ", " + error );
+        });
   }
   function newGroupItemMetadataProvider(){
     return new Slick.Data.GroupItemMetadataProvider()
@@ -246,9 +245,31 @@ var DataModel = function(options)
         options.columnFilters[key] = condition['$and'][i][key];
       };
     }
-    options.dataView.refresh();
     callback();
   }
+  function doRemoteFilter(field, condition, callback){
+    getData( options.dataUrl, {q: JSON.stringify(condition)}, callback);
+  }
+  function onAfterFilter(error, list){
+    if( list ){
+      if( list.length > 0 ){
+        var i, len=list.length;
+        for(i=0;i<len;i++){
+          if( options.useDataFlatter)
+            list[i] = flatten(list[i]);
+          if(options.dataIdField!='id') 
+            list[i].id = list[i][options.dataIdField];
+        }
+      }
+    }
+    options.data = list;
+    options.dataView.beginUpdate();
+    options.dataView.setItems(options.data);
+    options.dataView.endUpdate();
+    options.dataView.refresh();
+    options.slickPlugins.distinctMenu.obj.update();
+  }
+  
   function comparer(a, b) {
     var x = a[sortcol], y = b[sortcol];
     return (x == y ? 0 : (x > y ? 1 : -1));
